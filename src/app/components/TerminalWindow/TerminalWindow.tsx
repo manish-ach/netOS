@@ -20,6 +20,20 @@ const TerminalWindow = memo(() => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [size, setSize] = useState({ width: 1200, height: 700 });
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Center the terminal on mount only
+  useEffect(() => {
+    if (!isInitialized) {
+      const centerX = (window.innerWidth - size.width) / 2;
+      const centerY = (window.innerHeight - size.height) / 2;
+      setPosition({ x: centerX, y: centerY });
+      setIsInitialized(true);
+    }
+  }, [isInitialized, size.width, size.height]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (isMaximized) return;
@@ -27,27 +41,57 @@ const TerminalWindow = memo(() => {
     setFocused(true);
     setIsDragging(true);
     setDragStart({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
+      x: e.clientX,
+      y: e.clientY
     });
-  }, [setFocused, isMaximized, position]);
+  }, [setFocused, isMaximized]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || isMaximized) return;
     
-    const newX = e.clientX - dragStart.x;
-    const newY = e.clientY - dragStart.y;
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
     
-    // Constrain to viewport bounds - allow more left movement
-    const constrainedX = Math.max(-400, Math.min(window.innerWidth - 300, newX));
-    const constrainedY = Math.max(-100, Math.min(window.innerHeight - 300, newY));
+    const newX = position.x + deltaX;
+    const newY = position.y + deltaY;
+    
+    // Allow dragging beyond viewport bounds for full access
+    const constrainedX = newX;
+    const constrainedY = newY;
     
     setPosition({ x: constrainedX, y: constrainedY });
-  }, [isDragging, isMaximized, dragStart]);
+    
+    // Update drag start for next frame
+    setDragStart({ x: e.clientX, y: e.clientY });
+  }, [isDragging, isMaximized, dragStart, position]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
+    setIsResizing(false);
   }, []);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    if (isMaximized) return;
+    
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: size.width,
+      height: size.height
+    });
+  }, [isMaximized, size]);
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!isResizing || isMaximized) return;
+    
+    const newWidth = Math.max(600, Math.min(1600, resizeStart.width + (e.clientX - resizeStart.x)));
+    const newHeight = Math.max(400, Math.min(1000, resizeStart.height + (e.clientY - resizeStart.y)));
+    
+    // Direct update for immediate response
+    setSize({ width: newWidth, height: newHeight });
+  }, [isResizing, isMaximized, resizeStart]);
 
   // Add/remove mouse event listeners
   useEffect(() => {
@@ -61,23 +105,34 @@ const TerminalWindow = memo(() => {
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  if (!isVisible) return null;
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleResizeMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing, handleResizeMove, handleMouseUp]);
 
-  const transform = isMaximized 
-    ? '' 
-    : `translate(${position.x}px, ${position.y}px)`;
+  if (!isVisible) return null;
 
   return (
     <div
       onMouseDown={handleMouseDown}
-      className={`${isMaximized ? 'fixed inset-y-4 inset-x-2 z-50' : 'fixed top-20 left-1/2 -translate-x-1/2 z-50'}
-        ${isMaximized ? 'w-auto h-auto' : 'w-[700px] max-w-[90vw]'} 
-        rounded-xl overflow-hidden
-        shadow-[0_8px_40px_rgba(0,0,0,0.3)] backdrop-blur-md border transition-all duration-150 ease-out
+      className={`${isMaximized ? 'fixed top-0 left-0 right-0 bottom-0 z-50' : 'fixed z-50'}
+        ${isMaximized ? 'rounded-none' : 'rounded-xl'} overflow-hidden relative
+        ${isMaximized ? '' : 'shadow-[0_8px_40px_rgba(0,0,0,0.3)]'} backdrop-blur-md border transition-all duration-150 ease-out
         ${isFocused ? "border-blue-500/70 shadow-blue-500/30" : "border-gray-400/40 shadow-black/30"}
         ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
+        ${isResizing ? 'cursor-nw-resize' : ''}
       `}
-      style={{ transform }}
+      style={{ 
+        transform: isMaximized ? '' : `translate(${position.x}px, ${position.y}px)`,
+        width: isMaximized ? 'auto' : `${size.width}px`,
+        height: isMaximized ? 'auto' : `${size.height}px`
+      }}
     >
       {/* Title bar */}
       <div className="flex items-center justify-between px-3 py-2 bg-[#21262d] border-b border-gray-700">
@@ -104,6 +159,18 @@ const TerminalWindow = memo(() => {
 
       {/* Terminal Body */}
       {!isMinimized && <TerminalBody />}
+      
+      {/* Resize handle */}
+      {!isMaximized && (
+        <div
+          onMouseDown={handleResizeStart}
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-nw-resize opacity-50 hover:opacity-100 transition-opacity"
+          style={{
+            background: 'linear-gradient(-45deg, transparent 30%, #4a5568 30%, #4a5568 50%, transparent 50%)',
+            transform: 'translate(0, 0)'
+          }}
+        />
+      )}
     </div>
   );
 });

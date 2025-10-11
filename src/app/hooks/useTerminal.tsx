@@ -1,11 +1,11 @@
 "use client";
 
-import { createContext, useContext, useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { commands } from "../commands";
 
 export type Command = {
   input: string;
-  output: string | null;
+  output: string | React.ReactNode | null;
 };
 
 type TerminalContextValue = {

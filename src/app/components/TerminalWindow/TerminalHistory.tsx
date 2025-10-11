@@ -17,9 +17,13 @@ export const TerminalHistory = ({ history }: Props) => (
         </div>
         {cmd.output && (
           <div className="mt-2 ml-4">
-            <pre className="whitespace-pre-wrap text-[#d4d4d4] font-mono text-sm leading-relaxed">
-              {cmd.output}
-            </pre>
+            {typeof cmd.output === 'string' ? (
+              <pre className="whitespace-pre-wrap text-[#d4d4d4] font-mono text-sm leading-relaxed">
+                {cmd.output}
+              </pre>
+            ) : (
+              cmd.output
+            )}
           </div>
         )}
       </div>
