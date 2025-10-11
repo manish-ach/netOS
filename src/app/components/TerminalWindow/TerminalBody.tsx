@@ -23,7 +23,7 @@ export const TerminalBody = memo(() => {
     <div
       className={`bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm px-4 py-3 overflow-y-auto cursor-text
         scroll-smooth
-        ${isMaximized ? 'h-[calc(100vh-4rem)]' : 'h-[calc(100%-3rem)]'}`}
+        ${isMaximized ? 'h-[calc(100vh-3.5rem)]' : 'h-[calc(100%-3.5rem)]'}`}
       onClick={handleClick}
       style={{ scrollBehavior: 'auto' }}
     >

@@ -129,9 +129,10 @@ const TerminalWindow = memo(() => {
         ${isResizing ? 'cursor-nw-resize' : ''}
       `}
       style={{ 
-        transform: isMaximized ? '' : `translate(${position.x}px, ${position.y}px)`,
-        width: isMaximized ? 'auto' : `${size.width}px`,
-        height: isMaximized ? 'auto' : `${size.height}px`
+        left: isMaximized ? '0' : `${position.x}px`,
+        top: isMaximized ? '0' : `${position.y}px`,
+        width: isMaximized ? '100vw' : `${size.width}px`,
+        height: isMaximized ? '100vh' : `${size.height}px`
       }}
     >
       {/* Title bar */}
@@ -164,10 +165,10 @@ const TerminalWindow = memo(() => {
       {!isMaximized && (
         <div
           onMouseDown={handleResizeStart}
-          className="absolute bottom-0 right-0 w-4 h-4 cursor-nw-resize opacity-50 hover:opacity-100 transition-opacity"
+          className="absolute bottom-0 right-0 w-3 h-3 cursor-nw-resize opacity-60 hover:opacity-100 transition-opacity z-10"
           style={{
             background: 'linear-gradient(-45deg, transparent 30%, #4a5568 30%, #4a5568 50%, transparent 50%)',
-            transform: 'translate(0, 0)'
+            transform: 'translate(1px, 1px)'
           }}
         />
       )}
