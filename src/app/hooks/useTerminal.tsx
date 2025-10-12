@@ -21,6 +21,7 @@ type TerminalContextValue = {
   isVisible: boolean;
   isMinimized: boolean;
   isMaximized: boolean;
+  isClosed: boolean;
   minimizeTerminal: () => void;
   maximizeTerminal: () => void;
   closeTerminal: () => void;
@@ -38,6 +39,7 @@ export const TerminalProvider = ({ children }: { children: React.ReactNode }) =>
   const [isVisible, setIsVisible] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [isClosed, setIsClosed] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
@@ -84,12 +86,14 @@ export const TerminalProvider = ({ children }: { children: React.ReactNode }) =>
 
   const closeTerminal = useCallback(() => {
     setIsVisible(false);
+    setIsClosed(true);
     setFocused(false);
   }, []);
 
   const openTerminal = useCallback(() => {
     setIsVisible(true);
     setIsMinimized(false);
+    setIsClosed(false);
     setFocused(true);
     // If history is empty, add neofetch message
     if (history.length === 0) {
@@ -111,13 +115,14 @@ export const TerminalProvider = ({ children }: { children: React.ReactNode }) =>
     isVisible,
     isMinimized,
     isMaximized,
+    isClosed,
     minimizeTerminal,
     maximizeTerminal,
     closeTerminal,
     openTerminal,
   }), [
     input, history, submitCommand, inputRef, terminalEndRef,
-    isFocused, setFocused, focusInput, isVisible, isMinimized, isMaximized,
+    isFocused, setFocused, focusInput, isVisible, isMinimized, isMaximized, isClosed,
     minimizeTerminal, maximizeTerminal, closeTerminal, openTerminal
   ]);
 

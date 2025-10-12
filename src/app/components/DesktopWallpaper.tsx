@@ -1,8 +1,31 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
+
+interface ParticlePosition {
+  left: string;
+  top: string;
+  animationDelay: string;
+  animationDuration: string;
+}
 
 export const DesktopWallpaper = memo(() => {
+  const [particles, setParticles] = useState<ParticlePosition[]>([]);
+
+  useEffect(() => {
+    // Generate random positions only on the client side
+    const generateParticles = () => {
+      return Array.from({ length: 20 }, () => ({
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        animationDelay: `${Math.random() * 3}s`,
+        animationDuration: `${2 + Math.random() * 3}s`
+      }));
+    };
+
+    setParticles(generateParticles());
+  }, []);
+
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden">
       {/* Base gradient background */}
@@ -35,15 +58,15 @@ export const DesktopWallpaper = memo(() => {
       
       {/* Floating particles effect */}
       <div className="absolute inset-0">
-        {Array.from({ length: 20 }).map((_, i) => (
+        {particles.map((particle, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 3}s`
+              left: particle.left,
+              top: particle.top,
+              animationDelay: particle.animationDelay,
+              animationDuration: particle.animationDuration
             }}
           />
         ))}

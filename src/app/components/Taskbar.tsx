@@ -9,6 +9,7 @@ export const Taskbar = memo(() => {
     isVisible, 
     isMinimized, 
     isMaximized, 
+    isClosed,
     openTerminal, 
     minimizeTerminal, 
     maximizeTerminal, 
@@ -21,20 +22,22 @@ export const Taskbar = memo(() => {
         {/* Left side - Terminal icon */}
         <div className="flex items-center space-x-2">
           <button
-            onClick={isVisible && !isMinimized ? minimizeTerminal : openTerminal}
+            onClick={isMinimized ? openTerminal : (isVisible ? minimizeTerminal : openTerminal)}
             className={`flex items-center justify-center w-8 h-8 rounded transition-all duration-200 ${
               isVisible && !isMinimized 
                 ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
+                : isMinimized
+                ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
             }`}
-            title={isVisible && !isMinimized ? "Minimize Terminal" : "Open Terminal"}
+            title={isMinimized ? "Restore Terminal" : (isVisible ? "Minimize Terminal" : "Open Terminal")}
           >
             <Terminal size={16} />
           </button>
         </div>
 
-        {/* Center - Window controls (when terminal is visible) */}
-        {isVisible && (
+        {/* Center - Window controls (when terminal is visible and not minimized) */}
+        {isVisible && !isMinimized && (
           <div className="flex items-center space-x-1">
             <button
               onClick={minimizeTerminal}

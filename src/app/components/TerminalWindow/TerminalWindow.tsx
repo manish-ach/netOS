@@ -123,6 +123,7 @@ const TerminalWindow = memo(() => {
         ${isFocused ? "border-blue-500/70 shadow-blue-500/30" : "border-gray-400/40 shadow-black/30"}
         ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
         ${isResizing ? 'cursor-nw-resize' : ''}
+        ${isMinimized ? 'hidden' : ''}
       `}
       style={{ 
         left: isMaximized ? '0' : `${position.x}px`,
@@ -162,7 +163,7 @@ const TerminalWindow = memo(() => {
       </div>
 
       {/* Terminal Body */}
-      {!isMinimized && <TerminalBody />}
+      <TerminalBody />
       
       {/* Resize handle */}
       {!isMaximized && (

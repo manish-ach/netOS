@@ -5,9 +5,10 @@ import { Terminal } from "lucide-react";
 import { useTerminal } from "../hooks/useTerminal";
 
 export const TerminalIcon = () => {
-  const { isVisible, openTerminal } = useTerminal();
+  const { isVisible, isMinimized, isClosed, openTerminal } = useTerminal();
 
-  if (isVisible) return null;
+  // Only show icon when terminal is minimized, not when closed
+  if (isVisible || isClosed) return null;
 
   return (
     <motion.button
