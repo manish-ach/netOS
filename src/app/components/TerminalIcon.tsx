@@ -17,7 +17,7 @@ export const TerminalIcon = () => {
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       onClick={openTerminal}
-      className="fixed bottom-8 right-8 p-4 bg-[#21262d] text-[#c9d1d9] rounded-full 
+      className="fixed top-8 left-8 p-4 bg-[#21262d] text-[#c9d1d9] rounded-xl 
         shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md border border-gray-600/40
         hover:bg-[#30363d] hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)] 
         transition-all duration-200 cursor-pointer group"
@@ -27,7 +27,7 @@ export const TerminalIcon = () => {
       
       {/* Pulse animation */}
       <motion.div
-        className="absolute inset-0 rounded-full bg-green-400/20"
+        className="absolute inset-0 rounded-xl bg-green-400/20"
         animate={{ 
           scale: [1, 1.2, 1],
           opacity: [0.3, 0, 0.3]

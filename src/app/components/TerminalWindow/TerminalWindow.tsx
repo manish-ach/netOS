@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Maximize2, Minimize } from "lucide-react";
+import { Minus, Maximize2, Minimize, X } from "lucide-react";
 import { TerminalBody } from "./TerminalBody";
 import { useTerminal } from "../../hooks/useTerminal";
 import { memo, useCallback, useState, useEffect } from "react";
@@ -17,23 +17,19 @@ const TerminalWindow = memo(() => {
     closeTerminal 
   } = useTerminal();
 
+  const [size, setSize] = useState({ width: 900, height: 710 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState({ width: 1200, height: 700 });
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Center the terminal on mount only
+  // Simple centering on mount, accounting for taskbar
   useEffect(() => {
-    if (!isInitialized) {
-      const centerX = (window.innerWidth - size.width) / 2;
-      const centerY = (window.innerHeight - size.height) / 2;
-      setPosition({ x: centerX, y: centerY });
-      setIsInitialized(true);
-    }
-  }, [isInitialized, size.width, size.height]);
+    const centerX = (window.innerWidth - size.width) / 2;
+    const centerY = (window.innerHeight - size.height - 48) / 2; // Account for 48px taskbar
+    setPosition({ x: centerX, y: centerY });
+  }, []); // Only run once on mount
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (isMaximized) return;
@@ -121,7 +117,7 @@ const TerminalWindow = memo(() => {
   return (
     <div
       onMouseDown={handleMouseDown}
-      className={`${isMaximized ? 'fixed top-0 left-0 right-0 bottom-0 z-50' : 'fixed z-50'}
+      className={`${isMaximized ? 'fixed top-0 left-0 right-0 z-50' : 'fixed z-50'}
         ${isMaximized ? 'rounded-none' : 'rounded-xl'} overflow-hidden relative
         ${isMaximized ? '' : 'shadow-[0_8px_40px_rgba(0,0,0,0.3)]'} backdrop-blur-md border transition-all duration-150 ease-out
         ${isFocused ? "border-blue-500/70 shadow-blue-500/30" : "border-gray-400/40 shadow-black/30"}
@@ -132,7 +128,7 @@ const TerminalWindow = memo(() => {
         left: isMaximized ? '0' : `${position.x}px`,
         top: isMaximized ? '0' : `${position.y}px`,
         width: isMaximized ? '100vw' : `${size.width}px`,
-        height: isMaximized ? '100vh' : `${size.height}px`
+        height: isMaximized ? 'calc(100vh - 48px)' : `${size.height}px` // Account for taskbar
       }}
     >
       {/* Title bar */}
@@ -142,9 +138,9 @@ const TerminalWindow = memo(() => {
         </div>
         <div className="flex gap-2 text-gray-400">
           <button 
-            onClick={closeTerminal}
+            onClick={minimizeTerminal}
             className="hover:text-gray-200 transition-colors"
-            title="Minimize (Close)"
+            title="Minimize"
           >
             <Minus size={14} />
           </button>
@@ -154,6 +150,13 @@ const TerminalWindow = memo(() => {
             title={isMaximized ? "Restore" : "Maximize"}
           >
             {isMaximized ? <Minimize size={14} /> : <Maximize2 size={14} />}
+          </button>
+          <button 
+            onClick={closeTerminal}
+            className="hover:text-red-400 transition-colors"
+            title="Close"
+          >
+            <X size={14} />
           </button>
         </div>
       </div>
