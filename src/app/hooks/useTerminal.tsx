@@ -35,11 +35,11 @@ export const TerminalProvider = ({ children }: { children: React.ReactNode }) =>
   const [history, setHistory] = useState<Command[]>([
     { input: "neofetch", output: commands.neofetch() }
   ]);
-  const [isFocused, setFocused] = useState(true);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isFocused, setFocused] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
-  const [isClosed, setIsClosed] = useState(false);
+  const [isClosed, setIsClosed] = useState(true);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);

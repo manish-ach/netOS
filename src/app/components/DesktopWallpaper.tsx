@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useEffect, useState } from "react";
+import { useContextMenu } from "../hooks/useContextMenu";
 
 interface ParticlePosition {
   left: string;
@@ -10,6 +11,7 @@ interface ParticlePosition {
 }
 
 export const DesktopWallpaper = memo(() => {
+  const { openMenu } = useContextMenu();
   const [particles, setParticles] = useState<ParticlePosition[]>([]);
 
   useEffect(() => {
@@ -27,7 +29,16 @@ export const DesktopWallpaper = memo(() => {
   }, []);
 
   return (
-    <div className="fixed inset-0 w-full h-full overflow-hidden">
+    <div
+      className="fixed inset-0 w-full h-full overflow-hidden"
+      onContextMenu={(e) => {
+        e.preventDefault();
+        openMenu(e.clientX, e.clientY, [
+          { label: "Refresh (placeholder)", disabled: true },
+          { label: "New Folder (placeholder)", disabled: true },
+        ]);
+      }}
+    >
       {/* Base gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
       
