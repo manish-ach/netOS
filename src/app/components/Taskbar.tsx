@@ -33,7 +33,7 @@ export const Taskbar = memo(() => {
   const startButtonRef = useRef<HTMLButtonElement | null>(null);
   const startMenuRef = useRef<HTMLDivElement | null>(null);
   const { openMenu } = useContextMenu();
-  const { setFocusedApp, getZIndex } = useFocusManager();
+  const { setFocusedApp, getZIndex, bringToFront } = useFocusManager();
 
   // Close Start menu on outside click
   useEffect(() => {
@@ -139,7 +139,7 @@ export const Taskbar = memo(() => {
             aria-label="Terminal"
             onMouseDown={() => {
               setIsStartOpen(false);
-              setFocusedApp("terminal");
+              bringToFront("terminal");
             }}
           >
             <Terminal size={18} />
@@ -182,7 +182,7 @@ export const Taskbar = memo(() => {
             aria-label="Projects"
             onMouseDown={() => {
               setIsStartOpen(false);
-              setFocusedApp("projects");
+              bringToFront("projects");
             }}
           >
             <Image src="/file.svg" alt="Projects" width={18} height={18} />

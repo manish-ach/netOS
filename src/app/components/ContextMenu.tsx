@@ -23,11 +23,31 @@ export const ContextMenu = () => {
 
   if (!state.isOpen) return null;
 
+  // Compute clamped style so the menu stays within the viewport
+  const computedStyle: React.CSSProperties = (() => {
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
+    const taskbarHeight = 48;
+    const padding = 8;
+    // Approximate sizes; could be refined using menuRef measurements
+    const approxWidth = 200;
+    const approxItemHeight = 36;
+    const approxHeight = state.items.length * approxItemHeight + padding * 2;
+
+    const maxLeft = Math.max(0, viewportWidth - approxWidth - padding);
+    const maxTop = Math.max(0, viewportHeight - approxHeight - taskbarHeight - padding);
+
+    const left = Math.max(padding, Math.min(state.x, maxLeft));
+    const top = Math.max(padding, Math.min(state.y, maxTop));
+
+    return { left, top };
+  })();
+
   return (
     <div
       ref={menuRef}
       className="fixed z-[2000] min-w-[180px] rounded-md border border-white/10 bg-black/80 backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.45)] py-1 text-sm text-gray-200"
-      style={{ left: state.x, top: state.y }}
+      style={computedStyle}
     >
       {state.items.map((item, idx) => (
         <button

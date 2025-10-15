@@ -9,27 +9,45 @@ type FocusManagerContextValue = {
   setFocusedApp: (app: FocusedApp) => void;
   getZIndex: (app: FocusedApp) => number;
   getWindowPosition: (app: FocusedApp, windowSize: { width: number; height: number }) => { x: number; y: number };
+  bringToFront: (app: FocusedApp) => void;
 };
 
 const FocusManagerContext = createContext<FocusManagerContextValue | null>(null);
 
 export const FocusManagerProvider = ({ children }: { children: React.ReactNode }) => {
   const [focusedApp, setFocusedApp] = useState<FocusedApp>(null);
-  const [openWindows, setOpenWindows] = useState<Set<FocusedApp>>(new Set());
+  const [windowStack, setWindowStack] = useState<FocusedApp[]>([]);
 
   const getZIndex = useCallback((app: FocusedApp) => {
     // Start menu always on top when open
     if (app === "start") return 2000;
     
-    // Base z-index for all app windows
+    // Base z-index for app windows
     const baseZIndex = 100;
     
-    // If this app is focused, it gets the highest z-index
-    if (app === focusedApp) return baseZIndex + 200;
+    // Find the position of this app in the stack
+    const stackIndex = windowStack.indexOf(app);
     
-    // Otherwise, return base z-index
-    return baseZIndex;
-  }, [focusedApp]);
+    if (stackIndex === -1) {
+      // App not in stack, give it a low z-index
+      return baseZIndex;
+    }
+    
+    // Each window gets a unique z-index based on its position in the stack
+    // Earlier in stack (more front) => higher z-index
+    return baseZIndex + (windowStack.length - stackIndex) * 10;
+  }, [windowStack]);
+
+  const bringToFront = useCallback((app: FocusedApp) => {
+    if (!app || app === "start") return;
+    
+    setWindowStack(prev => {
+      // Remove app from current position and add to front
+      const newStack = prev.filter(a => a !== app);
+      return [app, ...newStack];
+    });
+    setFocusedApp(app);
+  }, []);
 
   const getWindowPosition = useCallback((app: FocusedApp, windowSize: { width: number; height: number }) => {
     const viewportWidth = window.innerWidth;
@@ -58,7 +76,7 @@ export const FocusManagerProvider = ({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  const value = useMemo(() => ({ focusedApp, setFocusedApp, getZIndex, getWindowPosition }), [focusedApp, getZIndex, getWindowPosition]);
+  const value = useMemo(() => ({ focusedApp, setFocusedApp, getZIndex, getWindowPosition, bringToFront }), [focusedApp, getZIndex, getWindowPosition, bringToFront]);
 
   return (
     <FocusManagerContext.Provider value={value}>{children}</FocusManagerContext.Provider>

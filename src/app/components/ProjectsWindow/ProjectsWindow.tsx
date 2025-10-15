@@ -18,7 +18,7 @@ const ProjectsWindow = memo(() => {
     closeProjects,
   } = useProjects();
 
-  const { focusedApp, setFocusedApp, getZIndex, getWindowPosition } = useFocusManager();
+  const { focusedApp, setFocusedApp, getZIndex, getWindowPosition, bringToFront } = useFocusManager();
 
   const [size, setSize] = useState({ width: 900, height: 600 });
   const [position, setPosition] = useState({ x: 80, y: 60 });
@@ -30,15 +30,28 @@ const ProjectsWindow = memo(() => {
   useEffect(() => {
     const newPosition = getWindowPosition("projects", size);
     setPosition(newPosition);
-  }, [size.width, size.height]); // Only depend on size dimensions
+  }, []); // Only run once on mount
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (isMaximized) return;
     setFocused(true);
-    setFocusedApp("projects");
+    bringToFront("projects");
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
-  }, [setFocused, setFocusedApp, isMaximized]);
+  }, [setFocused, bringToFront, isMaximized]);
+
+  // Allow dragging from container except interactive elements
+  const handleContainerMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (isMaximized) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('input, textarea, button, a, select, [data-nodrag], [contenteditable="true"]')) {
+      return;
+    }
+    setFocused(true);
+    bringToFront("projects");
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+  }, [isMaximized, setFocused, bringToFront]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || isMaximized) return;
@@ -48,18 +61,10 @@ const ProjectsWindow = memo(() => {
     const newX = position.x + deltaX;
     const newY = position.y + deltaY;
     
-    // Constrain to viewport bounds
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const taskbarHeight = 48;
-    const availableHeight = viewportHeight - taskbarHeight;
-    
-    const constrainedX = Math.max(0, Math.min(viewportWidth - size.width, newX));
-    const constrainedY = Math.max(0, Math.min(availableHeight - size.height, newY));
-    
-    setPosition({ x: constrainedX, y: constrainedY });
+    // No viewport constraints - allow free movement
+    setPosition({ x: newX, y: newY });
     setDragStart({ x: e.clientX, y: e.clientY });
-  }, [isDragging, isMaximized, dragStart, position, size]);
+  }, [isDragging, isMaximized, dragStart, position]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -106,15 +111,17 @@ const ProjectsWindow = memo(() => {
 
   return (
     <div
-      onMouseDown={handleMouseDown}
+      onMouseDown={handleContainerMouseDown}
       className={`${isMaximized ? 'fixed top-0 left-0 right-0' : 'fixed'} overflow-hidden relative
         ${isMaximized ? 'rounded-none' : 'rounded-xl'}
-        ${isMaximized ? '' : 'shadow-[0_8px_40px_rgba(0,0,0,0.3)]'} backdrop-blur-md border transition-all duration-150 ease-out
+        ${isMaximized ? '' : 'shadow-[0_8px_40px_rgba(0,0,0,0.3)]'} backdrop-blur-md border
         ${focusedApp === "projects" ? "border-purple-500/70 shadow-purple-500/30" : "border-gray-400/40 shadow-black/30"}
         ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
-        ${isResizing ? 'cursor-nw-resize' : ''}
+        ${isResizing ? 'cursor-se-resize' : ''}
         ${isMinimized ? 'hidden' : ''}
         pointer-events-auto
+        select-none
+        flex flex-col
       `}
       style={{ 
         left: isMaximized ? '0' : `${position.x}px`,
@@ -125,7 +132,7 @@ const ProjectsWindow = memo(() => {
       }}
     >
       {/* Title bar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-[#21262d] border-b border-gray-700">
+      <div onMouseDown={handleMouseDown} className="flex items-center justify-between px-3 py-2 bg-[#21262d] border-b border-gray-700">
         <div className="text-gray-300 text-sm select-none font-mono">Projects</div>
         <div className="flex gap-2 text-gray-400">
           <button 
@@ -153,7 +160,7 @@ const ProjectsWindow = memo(() => {
       </div>
 
       {/* Projects Body */}
-      <div className="w-full h-full bg-[#0d1117] p-4 overflow-auto">
+      <div className="w-full flex-1 min-h-0 bg-[#0d1117] p-4 overflow-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <div className="flex items-center gap-3 mb-2">
@@ -166,7 +173,7 @@ const ProjectsWindow = memo(() => {
               </div>
             </div>
             <div className="text-xs text-gray-300 mb-3">
-              Replace this with your real projects. You can render a list and link out.
+              FOr now a demo empty, will be addign github later
             </div>
             <div className="flex items-center gap-2">
               <a
@@ -192,7 +199,7 @@ const ProjectsWindow = memo(() => {
       {!isMaximized && (
         <div
           onMouseDown={handleResizeStart}
-          className="absolute bottom-0 right-0 w-3 h-3 cursor-nw-resize opacity-60 hover:opacity-100 transition-opacity z-10"
+          className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize opacity-60 hover:opacity-100 transition-opacity z-10"
           style={{
             background: 'linear-gradient(-45deg, transparent 30%, #4a5568 30%, #4a5568 50%, transparent 50%)',
             transform: 'translate(1px, 1px)'
