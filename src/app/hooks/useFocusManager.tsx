@@ -10,6 +10,8 @@ type FocusManagerContextValue = {
   getZIndex: (app: FocusedApp) => number;
   getWindowPosition: (app: FocusedApp, windowSize: { width: number; height: number }) => { x: number; y: number };
   bringToFront: (app: FocusedApp) => void;
+  resizingApp: FocusedApp;
+  setResizingApp: (app: FocusedApp) => void;
 };
 
 const FocusManagerContext = createContext<FocusManagerContextValue | null>(null);
@@ -17,6 +19,7 @@ const FocusManagerContext = createContext<FocusManagerContextValue | null>(null)
 export const FocusManagerProvider = ({ children }: { children: React.ReactNode }) => {
   const [focusedApp, setFocusedApp] = useState<FocusedApp>(null);
   const [windowStack, setWindowStack] = useState<FocusedApp[]>([]);
+  const [resizingApp, setResizingApp] = useState<FocusedApp>(null);
 
   const getZIndex = useCallback((app: FocusedApp) => {
     // Start menu always on top when open
@@ -76,7 +79,7 @@ export const FocusManagerProvider = ({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  const value = useMemo(() => ({ focusedApp, setFocusedApp, getZIndex, getWindowPosition, bringToFront }), [focusedApp, getZIndex, getWindowPosition, bringToFront]);
+  const value = useMemo(() => ({ focusedApp, setFocusedApp, getZIndex, getWindowPosition, bringToFront, resizingApp, setResizingApp }), [focusedApp, getZIndex, getWindowPosition, bringToFront, resizingApp]);
 
   return (
     <FocusManagerContext.Provider value={value}>{children}</FocusManagerContext.Provider>

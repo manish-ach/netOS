@@ -8,6 +8,7 @@ import { ProjectsProvider } from "./hooks/useProjects";
 import { ContextMenuProvider } from "./hooks/useContextMenu";
 import { ContextMenu } from "./components/ContextMenu";
 import { FocusManagerProvider } from "./hooks/useFocusManager";
+import Spotlight from "./components/Spotlight";
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
               <TerminalIcon />
               <Taskbar />
               <ContextMenu />
+              <Spotlight />
             </ProjectsProvider>
           </TerminalProvider>
         </ContextMenuProvider>

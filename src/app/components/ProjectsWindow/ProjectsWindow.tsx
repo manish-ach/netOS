@@ -18,7 +18,7 @@ const ProjectsWindow = memo(() => {
     closeProjects,
   } = useProjects();
 
-  const { focusedApp, setFocusedApp, getZIndex, getWindowPosition, bringToFront } = useFocusManager();
+  const { focusedApp, setFocusedApp, getZIndex, getWindowPosition, bringToFront, resizingApp, setResizingApp } = useFocusManager();
 
   const [size, setSize] = useState({ width: 900, height: 600 });
   const [position, setPosition] = useState({ x: 80, y: 60 });
@@ -43,6 +43,7 @@ const ProjectsWindow = memo(() => {
   // Allow dragging from container except interactive elements
   const handleContainerMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (isMaximized) return;
+    if (resizingApp && resizingApp !== "projects") return;
     const target = e.target as HTMLElement;
     if (target.closest('input, textarea, button, a, select, [data-nodrag], [contenteditable="true"]')) {
       return;
@@ -51,7 +52,7 @@ const ProjectsWindow = memo(() => {
     bringToFront("projects");
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
-  }, [isMaximized, setFocused, bringToFront]);
+  }, [isMaximized, setFocused, bringToFront, resizingApp]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || isMaximized) return;
@@ -69,14 +70,16 @@ const ProjectsWindow = memo(() => {
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setIsResizing(false);
-  }, []);
+    setResizingApp(null);
+  }, [setResizingApp]);
 
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
     if (isMaximized) return;
     e.stopPropagation();
     setIsResizing(true);
+    setResizingApp("projects");
     setResizeStart({ x: e.clientX, y: e.clientY, width: size.width, height: size.height });
-  }, [isMaximized, size]);
+  }, [isMaximized, size, setResizingApp]);
 
   const handleResizeMove = useCallback((e: MouseEvent) => {
     if (!isResizing || isMaximized) return;

@@ -18,7 +18,7 @@ const TerminalWindow = memo(() => {
     closeTerminal 
   } = useTerminal();
 
-  const { focusedApp, setFocusedApp, getZIndex, getWindowPosition, bringToFront } = useFocusManager();
+  const { focusedApp, setFocusedApp, getZIndex, getWindowPosition, bringToFront, resizingApp, setResizingApp } = useFocusManager();
 
   const [size, setSize] = useState({ width: 900, height: 710 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -48,6 +48,7 @@ const TerminalWindow = memo(() => {
   // Allow dragging from anywhere except interactive elements or while resizing
   const handleContainerMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (isMaximized) return;
+    if (resizingApp && resizingApp !== "terminal") return;
     const target = e.target as HTMLElement;
     // Skip drag when interacting with inputs/controls or contenteditable regions
     if (target.closest('input, textarea, button, a, select, [data-nodrag], [contenteditable="true"]')) {
@@ -58,7 +59,7 @@ const TerminalWindow = memo(() => {
     bringToFront("terminal");
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
-  }, [isMaximized, setFocused, bringToFront]);
+  }, [isMaximized, setFocused, bringToFront, resizingApp]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || isMaximized) return;
@@ -79,20 +80,22 @@ const TerminalWindow = memo(() => {
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setIsResizing(false);
-  }, []);
+    setResizingApp(null);
+  }, [setResizingApp]);
 
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
     if (isMaximized) return;
     
     e.stopPropagation();
     setIsResizing(true);
+    setResizingApp("terminal");
     setResizeStart({
       x: e.clientX,
       y: e.clientY,
       width: size.width,
       height: size.height
     });
-  }, [isMaximized, size]);
+  }, [isMaximized, size, setResizingApp]);
 
   const handleResizeMove = useCallback((e: MouseEvent) => {
     if (!isResizing || isMaximized) return;
